@@ -1,0 +1,23 @@
+﻿@page "/calendar/book"
+@page "/calendar/book/{code}"
+@rendermode InteractiveAuto
+
+<h3>Booking Calendar</h3>
+
+<InterviewCalendar OnDateClicked="HandleDateClicked" />
+
+@code {
+    private string selectedDate;
+    [Parameter]
+    public string Code { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+
+    }
+    private void HandleDateClicked(DateTime dateClicked)
+    {
+        selectedDate = dateClicked.ToString("yyyy-MM-dd");
+    }
+}

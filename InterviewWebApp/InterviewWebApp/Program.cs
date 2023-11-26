@@ -57,6 +57,7 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 app.MapRazorPages();
 app.MapControllers();
+app.MapFallbackToPage("/calendar/book/{code}", "/_Host");
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
