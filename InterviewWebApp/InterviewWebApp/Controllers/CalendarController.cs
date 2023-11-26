@@ -19,4 +19,19 @@ public class CalendarController : ControllerBase
         var link = await _calendarService.GenerateLinkAsync(userId);
         return Ok(new { Link = link });
     }
+    [HttpGet("interviews")]
+    public async Task<IActionResult> GetInterviews()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var interviews = await _calendarService.GetInterviewsAsync(userId);
+
+        var simpleInterviews = interviews.Select(i => new
+        {
+            Start = i.Start,
+            End = i.End,
+            Title = i.Title
+        }).ToArray();
+
+        return Ok(simpleInterviews);
+    }
 }

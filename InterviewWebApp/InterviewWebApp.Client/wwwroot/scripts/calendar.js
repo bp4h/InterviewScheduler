@@ -1,13 +1,15 @@
-﻿window.initCalendar = async (dotnetHelper) => {
+﻿window.initCalendar = async (dotnetHelper, interviews) => {
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         dateClick: function (info) {
             dotnetHelper.invokeMethodAsync('HandleDateClick', info.dateStr);
         },
-        events: [
-            { title: 'Мероприятие', start: '2023-11-26' }
-        ]
+        events: interviews.map(interview => ({
+            title: interview.title,
+            start: interview.start,
+            end: interview.end
+        }))
     });
     calendar.render();
 

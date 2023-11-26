@@ -1,6 +1,9 @@
-﻿public interface ICalendarService
+﻿using Microsoft.EntityFrameworkCore;
+
+public interface ICalendarService
 {
     Task<string> GenerateLinkAsync(string userId);
+    Task<List<Interview>> GetInterviewsAsync(string userId);
 }
 public class CalendarService : ICalendarService
 {
@@ -28,5 +31,13 @@ public class CalendarService : ICalendarService
         await _dbContext.SaveChangesAsync();
 
         return link;
+    }
+    public async Task<List<Interview>> GetInterviewsAsync(string userId)
+    {
+        var interviews = await _dbContext.Interviews
+            .Where(i => i.UserId == userId)
+            .ToListAsync();
+
+        return interviews;
     }
 }

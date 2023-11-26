@@ -1,4 +1,5 @@
 ﻿@inject IJSRuntime JSRuntime
+@inject HttpClient HttpClient
 
 <div id="calendar"></div>
 
@@ -10,12 +11,14 @@
 
 @code {
     private string selectedDate;
+    private dynamic[] interviews;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this));
+            await GetInterviews();
+            await JSRuntime.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this), interviews);
         }
     }
 
@@ -29,4 +32,17 @@
 
     [Parameter]
     public EventCallback<DateTime> OnDateClicked { get; set; }
+
+    private async Task GetInterviews()
+    {
+        var response = await HttpClient.GetAsync("/api/calendar/interviews");
+
+        if (response.IsSuccessStatusCode)
+        {
+            interviews = await response.Content.ReadFromJsonAsync<dynamic[]>();
+        }
+        else
+        {
+        }
+    }
 }
