@@ -12,7 +12,7 @@
 <button class="btn btn-primary" @onclick="GenerateLink">Generate Link</button>
 
 <InterviewCalendar OnDateClicked="HandleDateClicked" />
-
+<GeneratedLinkModal GeneratedLink="@generatedLink" JSRuntime="@JSRuntime" />
 @code {
     private string selectedDate;
     private string generatedLink;
@@ -31,15 +31,12 @@
         var content = new StringContent("", Encoding.UTF8, "application/json");
         var response = await HttpClient.PostAsync("/api/calendar/generate-link", content);
 
-        // Обработка ответа
         if (response.IsSuccessStatusCode)
         {
-            // Ваш код для обработки успешного ответа
             await JSRuntime.InvokeAsync<object>("console.log", "Success");
         }
         else
         {
-            // Ваш код для обработки ошибки
             await JSRuntime.InvokeAsync<object>("console.log", "Error");
         }
     }

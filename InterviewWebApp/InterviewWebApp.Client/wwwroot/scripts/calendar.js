@@ -19,7 +19,13 @@
             modal.modal('show');
         }
     };
-
+    window.openGeneratedLinkModal = () => {
+        var modal = $('#generatedLinkModal');
+        if (modal) {
+            modal.addClass('show');
+            modal.modal('show');
+        }
+    };
     var modalElement = $('#modal');
     modalElement.removeClass('show');
     modalElement.modal('hide');
