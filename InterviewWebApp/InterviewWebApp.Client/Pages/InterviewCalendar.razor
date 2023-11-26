@@ -1,0 +1,32 @@
+﻿@inject IJSRuntime JSRuntime
+
+<div id="calendar"></div>
+
+<EventModal>
+    <ModalBody>
+        <p><strong>Date:</strong> @selectedDate</p>
+    </ModalBody>
+</EventModal>
+
+@code {
+    private string selectedDate;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleDateClick(string selectedDate)
+    {
+        this.selectedDate = selectedDate;
+        await JSRuntime.InvokeVoidAsync("openEventModal");
+        StateHasChanged();
+    }
+
+    [Parameter]
+    public EventCallback<DateTime> OnDateClicked { get; set; }
+}

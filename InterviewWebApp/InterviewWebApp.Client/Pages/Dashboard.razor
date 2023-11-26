@@ -1,0 +1,18 @@
+﻿@page "/dashboard"
+@rendermode InteractiveAuto
+@using Microsoft.AspNetCore.Authorization
+@* @attribute [Authorize] *@
+
+<h3>Dashboard</h3>
+<p>Selected Date: @selectedDate</p>
+
+<InterviewCalendar OnDateClicked="HandleDateClicked" />
+
+@code {
+    private string selectedDate;
+
+    private void HandleDateClicked(DateTime dateClicked)
+    {
+        selectedDate = dateClicked.ToString("yyyy-MM-dd");
+    }
+}

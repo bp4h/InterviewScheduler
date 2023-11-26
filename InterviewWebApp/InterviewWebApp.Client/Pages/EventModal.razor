@@ -1,0 +1,52 @@
+﻿<div class="modal" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Event Details</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @ModalBody
+                <label>Time:</label>
+                @foreach (var timeSlot in timeSlots)
+                {
+                    <div>
+                        <input type="radio" id="@($"startTime_{timeSlot}")" name="startTime" value="@timeSlot" @onchange="() => selectedStartTime = timeSlot" />
+                        <label for="@($"startTime_{timeSlot}")">@timeSlot</label>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" @onclick="SaveEvent">Save Event</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment ModalBody { get; set; }
+
+    private readonly List<string> timeSlots = new List<string>
+    {
+        "9:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00",
+        "14:00-15:00", "15:00-16:00", "16:00-17:00"
+    };
+
+    private string selectedStartTime;
+    private string selectedEndTime;
+
+    private void SaveEvent()
+    {
+        string startTime = selectedStartTime;
+        string endTime = selectedEndTime;
+
+        Console.WriteLine($"Time: {startTime}");
+    }
+}
+
+
+
