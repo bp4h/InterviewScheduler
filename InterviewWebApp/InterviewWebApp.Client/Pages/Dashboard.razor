@@ -1,18 +1,30 @@
 ﻿@page "/dashboard"
 @rendermode InteractiveAuto
+@inject HttpClient HttpClient
+@inject IJSRuntime JSRuntime
 @using Microsoft.AspNetCore.Authorization
-@* @attribute [Authorize] *@
+@attribute [Authorize]
 
 <h3>Dashboard</h3>
 <p>Selected Date: @selectedDate</p>
+<button class="btn btn-primary" @onclick="GenerateLink">Generate Link</button>
 
 <InterviewCalendar OnDateClicked="HandleDateClicked" />
 
 @code {
     private string selectedDate;
+    private string generatedLink;
 
     private void HandleDateClicked(DateTime dateClicked)
     {
         selectedDate = dateClicked.ToString("yyyy-MM-dd");
     }
+    private async Task GenerateLink()
+    {
+        var guid = Guid.NewGuid().ToString();
+        generatedLink = $"/calendar/book?code={guid}";
+
+        await JSRuntime.InvokeAsync<object>("console.log", generatedLink);
+    }
 }
+

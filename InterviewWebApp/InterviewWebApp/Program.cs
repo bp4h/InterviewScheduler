@@ -1,5 +1,6 @@
 using InterviewWebApp.Client.Pages;
 using InterviewWebApp.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,14 +14,25 @@ builder.Services.AddRazorComponents()
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
+builder.Services.AddScoped<HttpClient>(s =>
+{
+    var uriHelper = s.GetRequiredService<NavigationManager>();
+    return new HttpClient
+    {
+        BaseAddress = new Uri(uriHelper.BaseUri)
+    };
+});
+
 builder.Services.AddIdentity<CustomUser, IdentityRole>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
     })
         .AddDefaultUI()
-        .AddEntityFrameworkStores<AppDbContext>();
+        .AddEntityFrameworkStores<AppDbContext>()
+        .AddTokenProvider<DataProtectorTokenProvider<CustomUser>>(TokenOptions.DefaultProvider);
 
 builder.Services.AddRazorPages();
+builder.Services.AddScoped<CalendarService>();
 
 var app = builder.Build();
 
