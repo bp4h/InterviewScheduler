@@ -32,7 +32,7 @@ builder.Services.AddIdentity<CustomUser, IdentityRole>(options =>
         .AddTokenProvider<DataProtectorTokenProvider<CustomUser>>(TokenOptions.DefaultProvider);
 
 builder.Services.AddRazorPages();
-builder.Services.AddScoped<CalendarService>();
+builder.Services.AddScoped<ICalendarService, CalendarService>();
 
 var app = builder.Build();
 
@@ -56,6 +56,7 @@ app.UseAuthorization();
 app.UseStaticFiles();
 app.UseAntiforgery();
 app.MapRazorPages();
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()

@@ -1,6 +1,8 @@
 ﻿@page "/dashboard"
 @rendermode InteractiveAuto
 @inject HttpClient HttpClient
+@using System.Net.Http
+@using System.Text
 @inject IJSRuntime JSRuntime
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
@@ -25,6 +27,21 @@
         generatedLink = $"/calendar/book?code={guid}";
 
         await JSRuntime.InvokeAsync<object>("console.log", generatedLink);
+
+        var content = new StringContent("", Encoding.UTF8, "application/json");
+        var response = await HttpClient.PostAsync("/api/calendar/generate-link", content);
+
+        // Обработка ответа
+        if (response.IsSuccessStatusCode)
+        {
+            // Ваш код для обработки успешного ответа
+            await JSRuntime.InvokeAsync<object>("console.log", "Success");
+        }
+        else
+        {
+            // Ваш код для обработки ошибки
+            await JSRuntime.InvokeAsync<object>("console.log", "Error");
+        }
     }
 }
 
