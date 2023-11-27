@@ -1,12 +1,14 @@
 ﻿@inject IJSRuntime JSRuntime
 @inject HttpClient HttpClient
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
 
 <div id="calendar"></div>
 
 <EventModal>
     <ModalBody>
         <p><strong>Date:</strong> @selectedDate</p>
-        <p>string: @ConnectString</p>
+        <p>Result: @interviewsByDate</p>
         @if (interviewsByDate != null && interviewsByDate.Any())
         {
             <ul>
@@ -28,9 +30,7 @@
 @code {
     private string selectedDate;
     private dynamic[] interviewsByCode;
-    private dynamic[] interviewsByDate;
-    private string ConnectString { get; set; }
-    private List<int> addedInterviewIds = new List<int>();
+    private SimpleInterview[] interviewsByDate;
 
     [Parameter]
     public string Code { get; set; }
@@ -76,9 +76,14 @@
 
         if (response.IsSuccessStatusCode)
         {
-            var contentString = await response.Content.ReadAsStringAsync();
-            ConnectString = contentString;
-
+            interviewsByDate = await response.Content.ReadFromJsonAsync<SimpleInterview[]>();
+            //var interviews = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Event>>(contentString);
+            //interviewsByDate = await response.Content.ReadFromJsonAsync<dynamic[]>();
+            //interviewsByDate = JsonConvert.DeserializeObject<dynamic>(contentString);
+            //interviewsByDate = JsonSerializer.Deserialize<dynamic[]>(contentString);
+            //interviewsByDate = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic[]>(contentString);
+            //var jArray = JArray.Parse(resultString);
+            //interviewsByDate = jArray.ToObject<dynamic>();
             //UpdateAddedInterviews();
         }
         else
@@ -86,17 +91,10 @@
             
         }
     }
-    private void UpdateAddedInterviews()
+    public class SimpleInterview
     {
-        
-        addedInterviewIds.Clear();
-
-        if (interviewsByDate != null)
-        {
-            foreach (var interview in interviewsByDate)
-            {
-                addedInterviewIds.Add(interview.Id);
-            }
-        }
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public string Title { get; set; }
     }
 }

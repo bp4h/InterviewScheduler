@@ -69,13 +69,19 @@ public class CalendarController : ControllerBase
 
         var interviews = await _calendarService.GetInterviewsByDateAsync(userId, selectedDate);
 
-        var simpleInterviews = interviews.Select(i => new
+        var simpleInterviews = interviews.Select(i => new SimpleInterview
         {
             Start = i.Start,
             End = i.End,
             Title = i.Title
-        }).ToArray();
+        });
 
         return Ok(simpleInterviews);
+    }
+    public class SimpleInterview
+    {
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public string Title { get; set; }
     }
 }
