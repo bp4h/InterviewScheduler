@@ -2,8 +2,9 @@
 
 public interface ICalendarService
 {
-    Task<string> GenerateLinkAsync(string userId);
+    Task<string> GenerateLinkAsync(string userId, string guid);
     Task<List<Interview>> GetInterviewsAsync(string userId);
+    Task<List<Interview>> GetInterviewsByCodeAsync(string code);
 }
 public class CalendarService : ICalendarService
 {
@@ -14,15 +15,14 @@ public class CalendarService : ICalendarService
         _dbContext = dbContext;
     }
 
-    public async Task<string> GenerateLinkAsync(string userId)
+    public async Task<string> GenerateLinkAsync(string userId, string guid)
     {
-        var guid = Guid.NewGuid();
         var link = $"/calendar/book?code={guid}";
 
         var shareLink = new ShareLink
         {
             UserId = userId,
-            Guid = guid,
+            Guid = Guid.Parse(guid),
             CreatedAt = DateTime.Now,
             IsActive = true
         };
@@ -40,4 +40,21 @@ public class CalendarService : ICalendarService
 
         return interviews;
     }
+    public async Task<List<Interview>> GetInterviewsByCodeAsync(string code)
+    {
+        var shareLink = await _dbContext.ShareLinks
+            .Include(sl => sl.User)
+            .Where(sl => sl.Guid.ToString() == code && sl.IsActive)
+            .FirstOrDefaultAsync();
+
+
+        if (shareLink == null)
+        {
+            // Handle case when the link is not found or inactive
+            return null;
+        }
+
+        return await GetInterviewsAsync(shareLink.UserId);
+    }
+    
 }

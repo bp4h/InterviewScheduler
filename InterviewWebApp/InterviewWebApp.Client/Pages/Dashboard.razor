@@ -23,13 +23,13 @@
     }
     private async Task GenerateLink()
     {
-        var guid = Guid.NewGuid().ToString();
-        generatedLink = $"/calendar/book?code={guid}";
+        var generatedGuid = Guid.NewGuid().ToString();
+        generatedLink = $"/calendar/book?code={generatedGuid}";
 
         await JSRuntime.InvokeAsync<object>("console.log", generatedLink);
 
         var content = new StringContent("", Encoding.UTF8, "application/json");
-        var response = await HttpClient.PostAsync("/api/calendar/generate-link", content);
+        var response = await HttpClient.PostAsync("/api/calendar/generate-link?guid=" + generatedGuid, content);
 
         if (response.IsSuccessStatusCode)
         {

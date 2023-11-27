@@ -1,4 +1,5 @@
 ﻿window.initCalendar = async (dotnetHelper, interviews) => {
+    console.log(interviews);
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',

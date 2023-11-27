@@ -1,21 +1,32 @@
 ﻿@page "/calendar/book"
-@page "/calendar/book/{code}"
+@page "/calendar/book/{Code}"
 @rendermode InteractiveAuto
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.WebUtilities;
+@using Microsoft.Extensions.Primitives;
 
 <h3>Booking Calendar</h3>
+<p>Code: @uriCode</p>
 
-<InterviewCalendar OnDateClicked="HandleDateClicked" />
+<ReservationCalendar Code="@uriCode" OnDateClicked="HandleDateClicked" />
 
 @code {
     private string selectedDate;
+    private string uriCode;
+
     [Parameter]
     public string Code { get; set; }
 
-
     protected override void OnInitialized()
     {
-
+        StringValues codeValues;
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("code", out codeValues))
+        {
+            uriCode = codeValues.ToString();
+        }
     }
+
     private void HandleDateClicked(DateTime dateClicked)
     {
         selectedDate = dateClicked.ToString("yyyy-MM-dd");

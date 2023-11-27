@@ -33,6 +33,7 @@ builder.Services.AddIdentity<CustomUser, IdentityRole>(options =>
 
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
@@ -56,11 +57,12 @@ app.UseAuthorization();
 app.UseStaticFiles();
 app.UseAntiforgery();
 app.MapRazorPages();
-app.MapControllers();
 app.MapFallbackToPage("/calendar/book/{code}", "/_Host");
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Counter).Assembly);
+
+app.MapControllers();
 
 app.Run();

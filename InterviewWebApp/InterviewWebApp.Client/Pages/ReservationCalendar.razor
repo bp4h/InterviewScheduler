@@ -1,0 +1,56 @@
+﻿@inject IJSRuntime JSRuntime
+@inject HttpClient HttpClient
+
+<div id="calendar"></div>
+
+<EventModal>
+    <ModalBody>
+        <p><strong>Date:</strong> @selectedDate</p>
+    </ModalBody>
+</EventModal>
+
+<p>Код: @Code</p>
+
+@code {
+    private string selectedDate;
+    private dynamic[] interviews;
+
+    [Parameter]
+    public string Code { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetInterviews();
+            await JSRuntime.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this), interviews);
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleDateClick(string selectedDate)
+    {
+        this.selectedDate = selectedDate;
+        await JSRuntime.InvokeVoidAsync("openEventModal");
+        StateHasChanged();
+    }
+
+    [Parameter]
+    public EventCallback<DateTime> OnDateClicked { get; set; }
+
+    private async Task GetInterviews()
+    {
+        await JSRuntime.InvokeAsync<object>("console.log", $"/api/calendar/interviewsByCode?code={Code}");
+
+        var response = await HttpClient.GetAsync($"/api/calendar/interviewsByCode?code={Code}");
+        //var response = await HttpClient.GetAsync("/api/calendar/interviewsByCode/" + Code);
+
+        if (response.IsSuccessStatusCode)
+        {
+            interviews = await response.Content.ReadFromJsonAsync<dynamic[]>();
+        }
+        else
+        {
+        }
+    }
+}
