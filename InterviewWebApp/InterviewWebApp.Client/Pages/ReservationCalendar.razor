@@ -8,7 +8,6 @@
 <EventModal>
     <ModalBody>
         <p><strong>Date:</strong> @selectedDate</p>
-        <p>Result: @interviewsByDate</p>
         @if (interviewsByDate != null && interviewsByDate.Any())
         {
             <ul>
@@ -77,14 +76,6 @@
         if (response.IsSuccessStatusCode)
         {
             interviewsByDate = await response.Content.ReadFromJsonAsync<SimpleInterview[]>();
-            //var interviews = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Event>>(contentString);
-            //interviewsByDate = await response.Content.ReadFromJsonAsync<dynamic[]>();
-            //interviewsByDate = JsonConvert.DeserializeObject<dynamic>(contentString);
-            //interviewsByDate = JsonSerializer.Deserialize<dynamic[]>(contentString);
-            //interviewsByDate = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic[]>(contentString);
-            //var jArray = JArray.Parse(resultString);
-            //interviewsByDate = jArray.ToObject<dynamic>();
-            //UpdateAddedInterviews();
         }
         else
         {
