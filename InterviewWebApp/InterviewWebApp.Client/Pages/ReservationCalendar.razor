@@ -6,6 +6,20 @@
 <EventModal>
     <ModalBody>
         <p><strong>Date:</strong> @selectedDate</p>
+        <p>string: @ConnectString</p>
+        @if (interviewsByDate != null && interviewsByDate.Any())
+        {
+            <ul>
+                @foreach (var interview in interviewsByDate)
+                {
+                    <li>@interview.Title</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>No interviews for this date.</p>
+        }
     </ModalBody>
 </EventModal>
 
@@ -13,7 +27,10 @@
 
 @code {
     private string selectedDate;
-    private dynamic[] interviews;
+    private dynamic[] interviewsByCode;
+    private dynamic[] interviewsByDate;
+    private string ConnectString { get; set; }
+    private List<int> addedInterviewIds = new List<int>();
 
     [Parameter]
     public string Code { get; set; }
@@ -23,7 +40,7 @@
         if (firstRender)
         {
             await GetInterviews();
-            await JSRuntime.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this), interviews);
+            await JSRuntime.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this), interviewsByCode);
         }
     }
 
@@ -31,6 +48,7 @@
     public async Task HandleDateClick(string selectedDate)
     {
         this.selectedDate = selectedDate;
+        await GetInterviewsByDate();
         await JSRuntime.InvokeVoidAsync("openEventModal");
         StateHasChanged();
     }
@@ -43,14 +61,42 @@
         await JSRuntime.InvokeAsync<object>("console.log", $"/api/calendar/interviewsByCode?code={Code}");
 
         var response = await HttpClient.GetAsync($"/api/calendar/interviewsByCode?code={Code}");
-        //var response = await HttpClient.GetAsync("/api/calendar/interviewsByCode/" + Code);
 
         if (response.IsSuccessStatusCode)
         {
-            interviews = await response.Content.ReadFromJsonAsync<dynamic[]>();
+            interviewsByCode = await response.Content.ReadFromJsonAsync<dynamic[]>();
         }
         else
         {
+        }
+    }
+    private async Task GetInterviewsByDate()
+    {
+        var response = await HttpClient.GetAsync($"/api/calendar/interviewsByDate?selectedDate={selectedDate}&code={Code}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var contentString = await response.Content.ReadAsStringAsync();
+            ConnectString = contentString;
+
+            //UpdateAddedInterviews();
+        }
+        else
+        {
+            
+        }
+    }
+    private void UpdateAddedInterviews()
+    {
+        
+        addedInterviewIds.Clear();
+
+        if (interviewsByDate != null)
+        {
+            foreach (var interview in interviewsByDate)
+            {
+                addedInterviewIds.Add(interview.Id);
+            }
         }
     }
 }

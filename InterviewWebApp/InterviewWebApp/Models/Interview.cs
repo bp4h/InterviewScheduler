@@ -9,3 +9,4 @@
 
     public CustomUser User { get; set; }
 }
+

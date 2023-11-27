@@ -8,10 +8,12 @@ using System.Security.Claims;
 public class CalendarController : ControllerBase
 {
     private readonly ICalendarService _calendarService;
+    private readonly IUserService _userService;
 
-    public CalendarController(ICalendarService calendarService)
+    public CalendarController(ICalendarService calendarService, IUserService userService)
     {
         _calendarService = calendarService;
+        _userService = userService;
     }
 
     [HttpPost("generate-link")]
@@ -39,12 +41,33 @@ public class CalendarController : ControllerBase
     [HttpGet("interviewsByCode")]
     public async Task<IActionResult> GetInterviewsByCode([FromQuery] string code)
     {
-        var interviews = await _calendarService.GetInterviewsByCodeAsync("2823A6C3-BE29-4C2B-87B5-9FE489974650");
+        var interviews = await _calendarService.GetInterviewsByCodeAsync(code);
 
         if (interviews == null)
         {
             return NotFound("Link not found or inactive for the provided code.");
         }
+
+        var simpleInterviews = interviews.Select(i => new
+        {
+            Start = i.Start,
+            End = i.End,
+            Title = i.Title
+        }).ToArray();
+
+        return Ok(simpleInterviews);
+    }
+    [HttpGet("interviewsByDate")]
+    public async Task<IActionResult> GetInterviewsByDate([FromQuery] DateTime selectedDate, [FromQuery] string code)
+    {
+        var userId = await _userService.GetUserByCodeAsync(code);
+
+        if (userId == null)
+        {
+            return NotFound("User not found for the provided code.");
+        }
+
+        var interviews = await _calendarService.GetInterviewsByDateAsync(userId, selectedDate);
 
         var simpleInterviews = interviews.Select(i => new
         {

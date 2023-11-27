@@ -5,6 +5,8 @@ public interface ICalendarService
     Task<string> GenerateLinkAsync(string userId, string guid);
     Task<List<Interview>> GetInterviewsAsync(string userId);
     Task<List<Interview>> GetInterviewsByCodeAsync(string code);
+    Task<List<Interview>> GetInterviewsByDateAsync(string userId, DateTime selectedDate);
+
 }
 public class CalendarService : ICalendarService
 {
@@ -50,11 +52,17 @@ public class CalendarService : ICalendarService
 
         if (shareLink == null)
         {
-            // Handle case when the link is not found or inactive
             return null;
         }
 
         return await GetInterviewsAsync(shareLink.UserId);
     }
-    
+    public async Task<List<Interview>> GetInterviewsByDateAsync(string userId, DateTime selectedDate)
+    {
+        var interviews = await _dbContext.Interviews
+            .Where(i => i.UserId == userId && i.Start.Date == selectedDate.Date)
+            .ToListAsync();
+
+        return interviews;
+    }
 }
