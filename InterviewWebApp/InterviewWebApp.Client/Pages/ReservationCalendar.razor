@@ -13,7 +13,8 @@
             <ul>
                 @foreach (var interview in interviewsByDate)
                 {
-                    <li>@interview.Title</li>
+                    <li>@interview.Start.ToString("HH:mm")-@interview.End.ToString("HH:mm") - REZERVOVÁNO</li>
+                    reservedTimeSlots.Add($"{interview.Start.ToString("HH:mm")}-{interview.End.ToString("HH:mm")}");
                 }
             </ul>
         }
@@ -21,12 +22,38 @@
         {
             <p>No interviews for this date.</p>
         }
+
+        <p>Choose time:</p>
+        <div>
+            @foreach (var timeSlot in timeSlots.Where(ts => !reservedTimeSlots.Contains(ts)))
+            {
+                <div>
+                    <input type="radio" id="@timeSlot" name="interviewTime" value="@timeSlot">
+                    <label for="@timeSlot">@timeSlot</label>
+                </div>
+            }
+        </div>
+        <div>
+            <p>Vaše jméno</p>
+            <input type="text" @bind="interviewTitle" placeholder="Vaše jméno">
+        </div>
     </ModalBody>
+    <ModalFooter>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
+        <button type="button" class="btn btn-primary" @onclick="RegisterInterview">Rezervovat</button>
+    </ModalFooter>
 </EventModal>
 @code {
     private string selectedDate;
     private dynamic[] interviewsByCode;
     private SimpleInterview[] interviewsByDate;
+    private readonly List<string> timeSlots = new List<string>
+    {
+        "9:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00",
+        "14:00-15:00", "15:00-16:00", "16:00-17:00"
+    };
+    private List<string> reservedTimeSlots = new List<string>();
+    private string interviewTitle;
 
     [Parameter]
     public string Code { get; set; }
@@ -78,6 +105,10 @@
         {
             
         }
+    }
+    private async Task RegisterInterview()
+    {
+        
     }
     public class SimpleInterview
     {

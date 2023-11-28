@@ -29,7 +29,7 @@
             modal.modal('show');
         }
     };
-    var modalElement = $('#modal');
+    /*var modalElement = $('#modal');
     modalElement.removeClass('show');
-    modalElement.modal('hide');
+    modalElement.modal('hide');*/
 };
