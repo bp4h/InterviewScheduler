@@ -95,6 +95,7 @@
     }
     private async Task GetInterviewsByDate()
     {
+        ClearReservedTimeSlots();
         var response = await HttpClient.GetAsync($"/api/calendar/interviewsByDate?selectedDate={selectedDate}&code={Code}");
 
         if (response.IsSuccessStatusCode)
@@ -109,6 +110,10 @@
     private async Task RegisterInterview()
     {
         
+    }
+    private void ClearReservedTimeSlots()
+    {
+        reservedTimeSlots.Clear();
     }
     public class SimpleInterview
     {
