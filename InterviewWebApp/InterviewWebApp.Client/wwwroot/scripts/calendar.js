@@ -29,6 +29,20 @@
             modal.modal('show');
         }
     };
+    window.openBookEventErrorModal = () => {
+        var modal = $('#bookEventErrorModal');
+        if (modal) {
+            modal.addClass('show');
+            modal.modal('show');
+        }
+    };
+    window.closeBookEventErrorModal = () => {
+        var modal = $('#bookEventErrorModal');
+        if (modal) {
+            modal.removeClass('show');
+            modal.modal('hide');
+        }
+    };
     /*var modalElement = $('#modal');
     modalElement.removeClass('show');
     modalElement.modal('hide');*/

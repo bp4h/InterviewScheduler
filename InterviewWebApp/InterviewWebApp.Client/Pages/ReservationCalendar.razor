@@ -7,7 +7,7 @@
 
 <EventModal>
     <ModalBody>
-        <p><strong>Date:</strong> @selectedDate</p>
+        <p><strong>Datum:</strong> @selectedDate</p>
         @if (interviewsByDate != null && interviewsByDate.Any())
         {
             <ul>
@@ -20,10 +20,10 @@
         }
         else
         {
-            <p>No interviews for this date.</p>
+            <p>Pro toto datum nejsou žádné pohovory.</p>
         }
 
-        <p>Choose time:</p>
+        <p>Vyberte čas:</p>
         <div>
             @foreach (var timeSlot in timeSlots.Where(ts => !reservedTimeSlots.Contains(ts)))
             {
@@ -43,6 +43,13 @@
         <button type="button" class="btn btn-primary" @onclick="RegisterInterview">Rezervovat</button>
     </ModalFooter>
 </EventModal>
+
+<BookEventErrorModal @bind-ShowErrorModal="showErrorModal" JSRuntime="@JSRuntime">
+    <ModalBody>
+        <div>@errorMessage</div>
+    </ModalBody>
+</BookEventErrorModal>
+
 @code {
     private string selectedDate;
     private dynamic[] interviewsByCode;
@@ -53,10 +60,15 @@
         "14:00-15:00", "15:00-16:00", "16:00-17:00"
     };
     private List<string> reservedTimeSlots = new List<string>();
+    private string selectedTimeSlot;
     private string interviewTitle;
+    private bool showErrorModal = false;
+    private string errorMessage = "";
 
     [Parameter]
     public string Code { get; set; }
+    [Parameter]
+    public EventCallback<DateTime> OnDateClicked { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -75,10 +87,6 @@
         await JSRuntime.InvokeVoidAsync("openEventModal");
         StateHasChanged();
     }
-
-    [Parameter]
-    public EventCallback<DateTime> OnDateClicked { get; set; }
-
     private async Task GetInterviews()
     {
         await JSRuntime.InvokeAsync<object>("console.log", $"/api/calendar/interviewsByCode?code={Code}");
@@ -109,7 +117,26 @@
     }
     private async Task RegisterInterview()
     {
-        
+        if (string.IsNullOrEmpty(selectedTimeSlot) && string.IsNullOrEmpty(interviewTitle))
+        {
+            errorMessage = "Zadejte datum a jméno";
+            showErrorModal = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(selectedTimeSlot))
+        {
+            errorMessage = "Vyberte čas";
+            showErrorModal = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(interviewTitle))
+        {
+            errorMessage = "Zadejte jméno";
+            showErrorModal = true;
+            return;
+        }
     }
     private void ClearReservedTimeSlots()
     {
