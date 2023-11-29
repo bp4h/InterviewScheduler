@@ -24,24 +24,30 @@
             <p>Pro toto datum nejsou žádné pohovory.</p>
         }
 
-        <p>Vyberte čas:</p>
-        <div>
-            @foreach (var timeSlot in timeSlots.Where(ts => !reservedTimeSlots.Contains(ts)))
-            {
-                <div>
-                    <input type="radio" id="@timeSlot" name="interviewTime" value="@timeSlot" @onclick="(e) => SetSelectedTimeSlot(e, timeSlot)">
-                    <label for="@timeSlot">@timeSlot</label>
-                </div>
-            }
-        </div>
-        <div>
-            <p>Vaše jméno</p>
-            <input type="text" @bind="interviewTitle" placeholder="Vaše jméno">
-        </div>
+        @if (selectedDateIsInFuture)  
+        {
+            <p>Vyberte čas:</p>
+            <div>
+                @foreach (var timeSlot in timeSlots.Where(ts => !reservedTimeSlots.Contains(ts)))
+                {
+                    <div>
+                        <input type="radio" id="@timeSlot" name="interviewTime" value="@timeSlot" @onclick="(e) => SetSelectedTimeSlot(e, timeSlot)">
+                        <label for="@timeSlot">@timeSlot</label>
+                    </div>
+                }
+            </div>
+            <div>
+                <p>Vaše jméno</p>
+                <input type="text" @bind="interviewTitle" placeholder="Vaše jméno">
+            </div>
+        }
     </ModalBody>
     <ModalFooter>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
-        <button type="button" class="btn btn-primary" @onclick="RegisterInterview">Rezervovat</button>
+        @if (selectedDateIsInFuture)
+        {
+            <button type="button" class="btn btn-primary" @onclick="RegisterInterview">Rezervovat</button>
+        }
     </ModalFooter>
 </EventModal>
 
@@ -65,6 +71,7 @@
     private string interviewTitle;
     private bool showErrorModal = false;
     private string errorMessage = "";
+    private bool selectedDateIsInFuture;
 
     [Parameter]
     public string Code { get; set; }
@@ -77,6 +84,7 @@
         {
             await GetInterviews();
             await JSRuntime.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this), interviewsByCode);
+            UpdateSelectedDateStatus();
         }
     }
 
@@ -85,8 +93,16 @@
     {
         this.selectedDate = selectedDate;
         await GetInterviewsByDate();
+        UpdateSelectedDateStatus();
         await JSRuntime.InvokeVoidAsync("openEventModal");
         StateHasChanged();
+    }
+    private void UpdateSelectedDateStatus()
+    {
+        if(selectedDate != null)
+        {
+            selectedDateIsInFuture = DateTime.Parse(selectedDate) >= DateTime.Today;
+        }        
     }
     private async Task GetInterviews()
     {
@@ -124,69 +140,63 @@
     }
     private async Task RegisterInterview()
     {
-        Console.WriteLine("Button clicked!");
+        try
+        {
+            var selectedDateTime = DateTime.ParseExact($"{selectedDate} {selectedTimeSlot.Split('-')[0]}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
-        if (string.IsNullOrEmpty(selectedTimeSlot) && string.IsNullOrEmpty(interviewTitle))
-        {
-            errorMessage = "Zadejte datum a jméno";
-            showErrorModal = true;
-            return;
-        }
-
-        if (string.IsNullOrEmpty(selectedTimeSlot))
-        {
-            errorMessage = "Vyberte čas";
-            showErrorModal = true;
-            return;
-        }
-
-        if (string.IsNullOrEmpty(interviewTitle))
-        {
-            errorMessage = "Zadejte jméno";
-            showErrorModal = true;
-            return;
-        }
-        if (selectedDate == null)
-        {
-            errorMessage = "Selected date  is null.";
-            showErrorModal = true;
-            await JSRuntime.InvokeVoidAsync("console.error", errorMessage);
-            return;
-        }
-        if (selectedTimeSlot == null)
-        {
-            errorMessage = "Selected time slot is null.";
-            showErrorModal = true;
-            await JSRuntime.InvokeVoidAsync("console.error", errorMessage);
-            return;
-        }
-        
-        var interviewData = new RegisterInterviewModel
+            if (selectedDateTime < DateTime.Now)
             {
-                Start = DateTime.ParseExact($"{selectedDate} {selectedTimeSlot.Split('-')[0]}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
-                End = DateTime.ParseExact($"{selectedDate} {selectedTimeSlot.Split('-')[1]}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
-                Title = interviewTitle
-            };
+                errorMessage = "Nelze registrovat interview v minulosti.";
+                showErrorModal = true;
+                return;
+            }
+            if (string.IsNullOrEmpty(selectedTimeSlot) && string.IsNullOrEmpty(interviewTitle))
+            {
+                errorMessage = "Zadejte datum a jméno";
+                showErrorModal = true;
+                return;
+            }
 
-        var response = await HttpClient.PostAsJsonAsync($"/api/calendar/registerInterview?code={Code}", interviewData);
+            if (string.IsNullOrEmpty(selectedTimeSlot))
+            {
+                errorMessage = "Vyberte čas";
+                showErrorModal = true;
+                return;
+            }
 
-        if (response.IsSuccessStatusCode)
-        {
-            errorMessage = "Interview registered successfully.";
-            showErrorModal = true;
-            await JSRuntime.InvokeVoidAsync("console.log", "Success");
+            if (string.IsNullOrEmpty(interviewTitle))
+            {
+                errorMessage = "Zadejte jméno";
+                showErrorModal = true;
+                return;
+            }
+
+            var interviewData = new RegisterInterviewModel
+                {
+                    Start = DateTime.ParseExact($"{selectedDate} {selectedTimeSlot.Split('-')[0]}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                    End = DateTime.ParseExact($"{selectedDate} {selectedTimeSlot.Split('-')[1]}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                    Title = interviewTitle
+                };
+
+            var response = await HttpClient.PostAsJsonAsync($"/api/calendar/registerInterview?code={Code}", interviewData);
+
+            if (response.IsSuccessStatusCode)
+            {
+                errorMessage = "Termín rezervován, děkujeme.";
+                showErrorModal = true;
+                await JSRuntime.InvokeVoidAsync("console.log", "Success");
+            }
+            else
+            {
+                errorMessage = $"Při registraci pohovoru došlo k chybě: {response.ReasonPhrase}";
+                showErrorModal = true;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            errorMessage = $"Error registering interview: {response.ReasonPhrase}";
+            errorMessage = $"Při registraci pohovoru došlo k chybě: {ex.Message}";
             showErrorModal = true;
-            await JSRuntime.InvokeVoidAsync("console.error", errorMessage);
-
-            var errorContent = await response.Content.ReadAsStringAsync();
-            await JSRuntime.InvokeVoidAsync("console.error", $"Error details: {errorContent}");
-            Console.WriteLine("Error!!!");
         }
-        
     }
     private void SetSelectedTimeSlot(MouseEventArgs e, string timeSlot)
     {
