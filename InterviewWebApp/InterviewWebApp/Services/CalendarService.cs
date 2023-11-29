@@ -6,7 +6,8 @@ public interface ICalendarService
     Task<List<Interview>> GetInterviewsAsync(string userId);
     Task<List<Interview>> GetInterviewsByCodeAsync(string code);
     Task<List<Interview>> GetInterviewsByDateAsync(string userId, DateTime selectedDate);
-
+    Task RegisterInterviewAsync(string userId, DateTime start, DateTime end, string title);
+    Task<string> GetUserIdByCodeAsync(string code);
 }
 public class CalendarService : ICalendarService
 {
@@ -64,5 +65,27 @@ public class CalendarService : ICalendarService
             .ToListAsync();
 
         return interviews;
+    }
+    public async Task<string> GetUserIdByCodeAsync(string code)
+    {
+        var userId = await _dbContext.ShareLinks
+            .Where(sl => sl.Guid == new Guid(code))
+            .Select(sl => sl.UserId)
+            .FirstOrDefaultAsync();
+
+        return userId;
+    }
+    public async Task RegisterInterviewAsync(string userId, DateTime start, DateTime end, string title)
+    {
+        var interview = new Interview
+        {
+            UserId = userId,
+            Start = start,
+            End = end,
+            Title = title
+        };
+
+        _dbContext.Interviews.Add(interview);
+        await _dbContext.SaveChangesAsync();
     }
 }

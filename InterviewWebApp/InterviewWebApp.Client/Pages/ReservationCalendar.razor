@@ -2,6 +2,7 @@
 @inject HttpClient HttpClient
 @using Newtonsoft.Json
 @using Newtonsoft.Json.Linq
+@using System.Globalization
 
 <div id="calendar"></div>
 
@@ -28,7 +29,7 @@
             @foreach (var timeSlot in timeSlots.Where(ts => !reservedTimeSlots.Contains(ts)))
             {
                 <div>
-                    <input type="radio" id="@timeSlot" name="interviewTime" value="@timeSlot">
+                    <input type="radio" id="@timeSlot" name="interviewTime" value="@timeSlot" @onclick="(e) => SetSelectedTimeSlot(e, timeSlot)">
                     <label for="@timeSlot">@timeSlot</label>
                 </div>
             }
@@ -115,8 +116,16 @@
             
         }
     }
+    public class RegisterInterviewModel
+    {
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public string Title { get; set; }
+    }
     private async Task RegisterInterview()
     {
+        Console.WriteLine("Button clicked!");
+
         if (string.IsNullOrEmpty(selectedTimeSlot) && string.IsNullOrEmpty(interviewTitle))
         {
             errorMessage = "Zadejte datum a jméno";
@@ -137,7 +146,53 @@
             showErrorModal = true;
             return;
         }
+        if (selectedDate == null)
+        {
+            errorMessage = "Selected date  is null.";
+            showErrorModal = true;
+            await JSRuntime.InvokeVoidAsync("console.error", errorMessage);
+            return;
+        }
+        if (selectedTimeSlot == null)
+        {
+            errorMessage = "Selected time slot is null.";
+            showErrorModal = true;
+            await JSRuntime.InvokeVoidAsync("console.error", errorMessage);
+            return;
+        }
+        
+        var interviewData = new RegisterInterviewModel
+            {
+                Start = DateTime.ParseExact($"{selectedDate} {selectedTimeSlot.Split('-')[0]}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                End = DateTime.ParseExact($"{selectedDate} {selectedTimeSlot.Split('-')[1]}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                Title = interviewTitle
+            };
+
+        var response = await HttpClient.PostAsJsonAsync($"/api/calendar/registerInterview?code={Code}", interviewData);
+
+        if (response.IsSuccessStatusCode)
+        {
+            errorMessage = "Interview registered successfully.";
+            showErrorModal = true;
+            await JSRuntime.InvokeVoidAsync("console.log", "Success");
+        }
+        else
+        {
+            errorMessage = $"Error registering interview: {response.ReasonPhrase}";
+            showErrorModal = true;
+            await JSRuntime.InvokeVoidAsync("console.error", errorMessage);
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            await JSRuntime.InvokeVoidAsync("console.error", $"Error details: {errorContent}");
+            Console.WriteLine("Error!!!");
+        }
+        
     }
+    private void SetSelectedTimeSlot(MouseEventArgs e, string timeSlot)
+    {
+        selectedTimeSlot = timeSlot;
+    }
+
     private void ClearReservedTimeSlots()
     {
         reservedTimeSlots.Clear();

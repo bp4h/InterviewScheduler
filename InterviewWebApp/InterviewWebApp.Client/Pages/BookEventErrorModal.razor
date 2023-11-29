@@ -24,6 +24,6 @@
     public bool ShowErrorModal { get; set; }
     [Parameter]
     public IJSRuntime JSRuntime { get; set; }
-
-      
+    [Parameter]
+    public EventCallback<bool> ShowErrorModalChanged { get; set; }      
 }

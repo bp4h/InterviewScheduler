@@ -78,6 +78,28 @@ public class CalendarController : ControllerBase
 
         return Ok(simpleInterviews);
     }
+    public class RegisterInterviewModel
+    {
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public string Title { get; set; }
+    }
+    [HttpPost("registerInterview")]
+    public async Task<IActionResult> RegisterInterview([FromBody] RegisterInterviewModel model, [FromQuery] string code)
+    {
+        var userId = await _calendarService.GetUserIdByCodeAsync(code);
+
+        try
+        {
+            await _calendarService.RegisterInterviewAsync(userId, model.Start, model.End, model.Title);
+            return Ok("Interview registered successfully.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error registering interview: {ex.Message}");
+        }
+    }
+
     public class SimpleInterview
     {
         public DateTime Start { get; set; }
