@@ -6,12 +6,30 @@
 <EventModal>
     <ModalBody>
         <p><strong>Date:</strong> @selectedDate</p>
+        @if (interviewsByUserByDate != null && interviewsByUserByDate.Any())
+        {
+            <ul>
+                @foreach (var interview in interviewsByUserByDate)
+                {
+                    <li>@interview.Start.ToString("HH:mm")-@interview.End.ToString("HH:mm") - @interview.Title</li>
+                    reservedTimeSlots.Add($"{interview.Start.ToString("HH:mm")}-{interview.End.ToString("HH:mm")}");
+                }
+            </ul>
+        }
+        else
+        {
+            <p>Pro toto datum nejsou žádné pohovory.</p>
+        }
     </ModalBody>
 </EventModal>
 
 @code {
     private string selectedDate;
     private dynamic[] interviews;
+    private SimpleInterview[] interviewsByUserByDate;
+    private string interviewTitle;
+    private List<string> reservedTimeSlots = new List<string>();
+    private bool selectedDateIsInFuture;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -19,6 +37,7 @@
         {
             await GetInterviews();
             await JSRuntime.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this), interviews);
+            UpdateSelectedDateStatus();
         }
     }
 
@@ -26,6 +45,8 @@
     public async Task HandleDateClick(string selectedDate)
     {
         this.selectedDate = selectedDate;
+        await GetInterviewsByUserByDate();
+        UpdateSelectedDateStatus();
         await JSRuntime.InvokeVoidAsync("openEventModal");
         StateHasChanged();
     }
@@ -44,6 +65,31 @@
         else
         {
         }
+    }
+    private void UpdateSelectedDateStatus()
+    {
+        if (selectedDate != null)
+        {
+            selectedDateIsInFuture = DateTime.Parse(selectedDate) >= DateTime.Today;
+        }
+    }
+    private async Task GetInterviewsByUserByDate()
+    {
+        ClearReservedTimeSlots();
+        var response = await HttpClient.GetAsync($"/api/calendar/interviewsByUserByDate?selectedDate={selectedDate}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            interviewsByUserByDate = await response.Content.ReadFromJsonAsync<SimpleInterview[]>();
+        }
+        else
+        {
+
+        }
+    }
+    private void ClearReservedTimeSlots()
+    {
+        reservedTimeSlots.Clear();
     }
     public class SimpleInterview
     {

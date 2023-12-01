@@ -57,6 +57,28 @@ public class CalendarController : ControllerBase
 
         return Ok(simpleInterviews);
     }
+    [HttpGet("interviewsByUserByDate")]
+    public async Task<IActionResult> GetInterviewsByUserByDate([FromQuery] DateTime selectedDate)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userId == null)
+        {
+            return NotFound("User not found for the provided code.");
+        }
+
+        var interviews = await _calendarService.GetInterviewsByUserByDateAsync(userId, selectedDate);
+
+        var simpleInterviews = interviews.Select(i => new SimpleInterview
+        {
+            Start = i.Start,
+            End = i.End,
+            Title = i.Title
+        });
+
+        return Ok(simpleInterviews);
+    }
+
     [HttpGet("interviewsByDate")]
     public async Task<IActionResult> GetInterviewsByDate([FromQuery] DateTime selectedDate, [FromQuery] string code)
     {

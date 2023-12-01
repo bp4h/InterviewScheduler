@@ -8,6 +8,7 @@ public interface ICalendarService
     Task<List<Interview>> GetInterviewsByDateAsync(string userId, DateTime selectedDate);
     Task RegisterInterviewAsync(string userId, DateTime start, DateTime end, string title);
     Task<string> GetUserIdByCodeAsync(string code);
+    Task<List<Interview>> GetInterviewsByUserByDateAsync(string userId, DateTime selectedDate);
 }
 public class CalendarService : ICalendarService
 {
@@ -39,6 +40,14 @@ public class CalendarService : ICalendarService
     {
         var interviews = await _dbContext.Interviews
             .Where(i => i.UserId == userId)
+            .ToListAsync();
+
+        return interviews;
+    }
+    public async Task<List<Interview>> GetInterviewsByUserByDateAsync(string userId, DateTime selectedDate)
+    {
+        var interviews = await _dbContext.Interviews
+            .Where(i => i.UserId == userId && i.Start.Date == selectedDate.Date)
             .ToListAsync();
 
         return interviews;
