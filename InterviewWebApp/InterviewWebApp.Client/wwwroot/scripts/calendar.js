@@ -6,6 +6,13 @@
         dateClick: function (info) {
             dotnetHelper.invokeMethodAsync('HandleDateClick', info.dateStr);
         },
+        displayEventTime: true,
+        displayEventEnd: true,
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false
+        },
         events: interviews.map(interview => ({
             title: interview.title,
             start: interview.start,

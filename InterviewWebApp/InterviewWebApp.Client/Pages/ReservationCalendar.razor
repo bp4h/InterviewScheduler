@@ -14,7 +14,7 @@
             <ul>
                 @foreach (var interview in interviewsByDate)
                 {
-                    <li>@interview.Start.ToString("HH:mm")-@interview.End.ToString("HH:mm") - REZERVOVÁNO</li>
+                    <li>@interview.Start.ToString("HH:mm")-@interview.End.ToString("HH:mm") - RESERVED</li>
                     reservedTimeSlots.Add($"{interview.Start.ToString("HH:mm")}-{interview.End.ToString("HH:mm")}");
                 }
             </ul>

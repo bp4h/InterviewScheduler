@@ -52,7 +52,7 @@ public class CalendarController : ControllerBase
         {
             Start = i.Start,
             End = i.End,
-            Title = i.Title
+            Title = "RESERVED"
         }).ToArray();
 
         return Ok(simpleInterviews);

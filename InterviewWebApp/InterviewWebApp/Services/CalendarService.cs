@@ -47,7 +47,7 @@ public class CalendarService : ICalendarService
     {
         var shareLink = await _dbContext.ShareLinks
             .Include(sl => sl.User)
-            .Where(sl => sl.Guid.ToString() == code && sl.IsActive)
+            .Where(sl => sl.Guid.ToString() == code)
             .FirstOrDefaultAsync();
 
 
